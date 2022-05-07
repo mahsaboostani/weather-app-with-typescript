@@ -12,7 +12,7 @@
         placeholder="Search..."
       />
     </div>
-    <div v-if="search">
+    <div v-if="enter && !error">
       <div class="location-box">
         <div class="location">
           {{ weather.name }}, {{ weather.sys.country }}
@@ -24,6 +24,7 @@
         <div class="weather">{{ weather.weather[0].main }}</div>
       </div>
     </div>
+    <h1 v-if="error">The city did not find.</h1>
   </div>
 </template>
 <script lang="ts">
@@ -33,19 +34,23 @@ import axios from "axios";
 export default defineComponent({
   data() {
     return {
-      apiKey: "a9cfcebffa1dd461fc17139b19ddf402" as string,
+      apiKey: process.env.VUE_APP_API_KEY_WEATHER as string,
       apiUrl: "https://api.openweathermap.org/data/2.5/" as string,
-      apiKeyDate: "cc811118deff4a44b57c1b9dd9f187c4" as string,
+      apiKeyDate: process.env.VUE_APP_API_KEY_DATE as string,
       apiUrlDate: "https://api.ipgeolocation.io/timezone?" as string,
       search: "" as string,
       weather: {} as any,
       date: {} as any,
       rain: false as boolean,
+      enter: false as boolean,
+      error: false as boolean,
     };
   },
   methods: {
     fetchWeather(e: any) {
+      this.error = false;
       if (e.key === "Enter") {
+        this.enter = true;
         axios
           .get(
             `${this.apiUrl}weather?q=${this.search}&units=metric&appid=${this.apiKey}`
@@ -57,9 +62,13 @@ export default defineComponent({
             if (this.weather.weather[0].main === "Rain") {
               this.rain = true;
             }
+            console.log(response.data);
             return response.data;
           })
-          .then((results) => console.log(results.data));
+          .catch((error) => {
+            console.log(error);
+            this.error = true;
+          });
         axios
           .get(
             `${this.apiUrlDate}apiKey=${this.apiKeyDate}&location=${this.search}`

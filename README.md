@@ -1,24 +1,15 @@
-# weather-with-typescript
+# Weather app with typescript
+This app show weather, temperature and date of every cities that you want to know.
 
-## Project setup
-```
-npm install
-```
+This is based on:
+- Vue.js
+- Typescript
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+I have used [this website](https://home.openweathermap.org/) for weather and [this website](https://app.ipgeolocation.io/) for date APIs.
+## Install
+You can simply run `npm install` to install all dependencies. 
+## Run
+To run the project you can use `npm run serve`.
+Also to run the app you need get an API key from the websites mentioned above. Then you need to set them in `.env` file.
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+For making it ready to deliver to production you can use `npm run build`. 
