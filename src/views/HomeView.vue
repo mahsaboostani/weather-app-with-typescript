@@ -5,12 +5,24 @@
     </header>
     <div class="search">
       <input
+        @input="fetchCity"
         v-model="search"
-        @keypress="fetchWeather"
+        @change="fetchWeather"
         class="search-bar"
         type="text"
         placeholder="Search..."
+        list="browsers"
+        name="browser"
       />
+      <datalist v-if="isOpen" id="browsers">
+        <option
+          v-for="city in cities"
+          :key="city.index"
+          :value="[city.city, getFirstLetters(city.country)]"
+        >
+          {{ city.county }},{{ city.country }}
+        </option>
+      </datalist>
     </div>
     <div v-if="enter && !error">
       <div class="location-box">
@@ -24,7 +36,7 @@
         <div class="weather">{{ weather.weather[0].main }}</div>
       </div>
     </div>
-    <h1 v-if="error">The city did not find.</h1>
+    <h1 v-if="error">The weather status is not accessible.</h1>
   </div>
 </template>
 <script lang="ts">
@@ -44,38 +56,93 @@ export default defineComponent({
       rain: false as boolean,
       enter: false as boolean,
       error: false as boolean,
+      cities: [] as any,
+      res: {} as any,
+      isOpen: false as boolean,
+      index: "" as string,
     };
   },
+
   methods: {
-    fetchWeather(e: any) {
-      this.error = false;
-      if (e.key === "Enter") {
-        this.enter = true;
-        axios
+    async fetchCity() {
+      // const language =
+      //   window.navigator.userLanguage || window.navigator.language;
+      if (this.search.length >= 3) {
+        this.isOpen = true;
+        await axios
           .get(
-            `${this.apiUrl}weather?q=${this.search}&units=metric&appid=${this.apiKey}`
+            `https://api.geoapify.com/v1/geocode/autocomplete?apiKey=ea9e58758b6b4936a63f96ce384ee71d&text=${this.search}&type=city`
           )
           .then((response) => {
-            this.weather = response.data;
-
-            this.rain = false;
-            if (this.weather.weather[0].main === "Rain") {
-              this.rain = true;
+            this.cities = [];
+            this.res = response.data;
+            for (let i = 0; i < this.res.features.length; i++) {
+              let curCity: string = this.res.features[i].properties.city;
+              let curCounty: string = this.res.features[i].properties.county;
+              if (curCity && curCounty) {
+                this.cities.push({
+                  city: this.res.features[i].properties.city,
+                  country: this.res.features[i].properties.country,
+                  county: this.res.features[i].properties.county,
+                });
+              }
             }
-            console.log(response.data);
-            return response.data;
+            this.cities = [
+              ...new Map(
+                this.cities.map((item: object) => [JSON.stringify(item), item])
+              ).values(),
+            ];
+            console.log(this.cities);
           })
           .catch((error) => {
             console.log(error);
-            this.error = true;
           });
-        axios
-          .get(
-            `${this.apiUrlDate}apiKey=${this.apiKeyDate}&location=${this.search}`
-          )
-          .then((response) => {
-            this.date = response.data;
-          });
+        console.log("r", this.res);
+
+        console.log("c", this.cities);
+      }
+    },
+    fetchWeather() {
+      this.isOpen = false;
+      this.error = false;
+
+      axios
+        .get(
+          `${this.apiUrl}weather?q=${this.search}&units=metric&appid=${this.apiKey}`
+        )
+        .then((response) => {
+          this.weather = response.data;
+          this.enter = true;
+          this.rain = false;
+          if (this.weather.weather[0].main === "Rain") {
+            this.rain = true;
+          }
+          console.log(response.data);
+          return response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+          this.error = true;
+        });
+      axios
+        .get(
+          `${this.apiUrlDate}apiKey=${this.apiKeyDate}&location=${this.search}`
+        )
+        .then((response) => {
+          this.date = response.data;
+        });
+      // this.search = "";
+    },
+    getFirstLetters(str: string): string {
+      if (str.split(" ").length === 2) {
+        const firstLetters: string = str
+          .split(" ")
+          .map((word) => word[0])
+          .join("");
+        return firstLetters;
+      } else {
+        const firstLetters: string = str.substring(0, 2);
+        return firstLetters;
       }
     },
   },
