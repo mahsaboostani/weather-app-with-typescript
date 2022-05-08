@@ -1,13 +1,13 @@
 <template>
-  <div id="app" :class="{ rainy: rain }">
+  <div :class="{ rainy: rain }" id="app">
     <header>
       <h1>Weather App</h1>
     </header>
     <div class="search">
       <input
         @input="fetchCity"
-        v-model="search"
         @change="fetchWeather"
+        v-model="search"
         class="search-bar"
         type="text"
         placeholder="Search..."
@@ -39,9 +39,10 @@
     <h1 v-if="error">The weather status is not accessible.</h1>
   </div>
 </template>
+
 <script lang="ts">
 import { defineComponent } from "vue";
-import axios from "axios";
+import Service from "@/../services/Service";
 
 export default defineComponent({
   data() {
@@ -50,6 +51,7 @@ export default defineComponent({
       apiUrl: "https://api.openweathermap.org/data/2.5/" as string,
       apiKeyDate: process.env.VUE_APP_API_KEY_DATE as string,
       apiUrlDate: "https://api.ipgeolocation.io/timezone?" as string,
+      apiKeyCity: process.env.VUE_APP_API_KEY_CITY as string,
       search: "" as string,
       weather: {} as any,
       date: {} as any,
@@ -69,16 +71,13 @@ export default defineComponent({
       //   window.navigator.userLanguage || window.navigator.language;
       if (this.search.length >= 3) {
         this.isOpen = true;
-        await axios
-          .get(
-            `https://api.geoapify.com/v1/geocode/autocomplete?apiKey=ea9e58758b6b4936a63f96ce384ee71d&text=${this.search}&type=city`
-          )
-          .then((response) => {
+        await Service.getCity(this.search, this.apiKeyCity)
+          .then((response: any) => {
             this.cities = [];
             this.res = response.data;
             for (let i = 0; i < this.res.features.length; i++) {
-              let curCity: string = this.res.features[i].properties.city;
-              let curCounty: string = this.res.features[i].properties.county;
+              const curCity: string = this.res.features[i].properties.city;
+              const curCounty: string = this.res.features[i].properties.county;
               if (curCity && curCounty) {
                 this.cities.push({
                   city: this.res.features[i].properties.city,
@@ -94,7 +93,7 @@ export default defineComponent({
             ];
             console.log(this.cities);
           })
-          .catch((error) => {
+          .catch((error: any) => {
             console.log(error);
           });
         console.log("r", this.res);
@@ -102,15 +101,12 @@ export default defineComponent({
         console.log("c", this.cities);
       }
     },
+
     fetchWeather() {
       this.isOpen = false;
       this.error = false;
-
-      axios
-        .get(
-          `${this.apiUrl}weather?q=${this.search}&units=metric&appid=${this.apiKey}`
-        )
-        .then((response) => {
+      Service.getWeather(this.search, this.apiUrl, this.apiKey)
+        .then((response: any) => {
           this.weather = response.data;
           this.enter = true;
           this.rain = false;
@@ -120,19 +116,18 @@ export default defineComponent({
           console.log(response.data);
           return response.data;
         })
-        .catch((error) => {
+        .catch((error: any) => {
           console.log(error);
           this.error = true;
         });
-      axios
-        .get(
-          `${this.apiUrlDate}apiKey=${this.apiKeyDate}&location=${this.search}`
-        )
-        .then((response) => {
+      Service.getDate(this.search, this.apiUrlDate, this.apiKeyDate).then(
+        (response: any) => {
           this.date = response.data;
-        });
+        }
+      );
       // this.search = "";
     },
+
     getFirstLetters(str: string): string {
       if (str.split(" ").length === 2) {
         const firstLetters: string = str
@@ -148,6 +143,7 @@ export default defineComponent({
   },
 });
 </script>
+
 <style scoped>
 #app {
   background-image: url(../assets/sunny.jpg);

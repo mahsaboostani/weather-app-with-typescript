@@ -13,3 +13,5 @@ To run the project you can use `npm run serve`.
 Also to run the app you need get an API key from the websites mentioned above. Then you need to set them in `.env` file.
 
 For making it ready to deliver to production you can use `npm run build`. 
+## Preview
+![image](images/demo.gif)
