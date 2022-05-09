@@ -5,7 +5,7 @@ This is based on:
 - Vue.js
 - Typescript
 
-I have used [this website](https://home.openweathermap.org/) for weather and [this website](https://app.ipgeolocation.io/) for date APIs.
+I have used [this website](https://home.openweathermap.org/) for weather and [this website](https://app.ipgeolocation.io/) for date and [this website](https://myprojects.geoapify.com/) for cities APIs.
 ## Install
 You can simply run `npm install` to install all dependencies. 
 ## Run
